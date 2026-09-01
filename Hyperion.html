@@ -1,0 +1,13 @@
+<script>
+const Hyperion=(()=>{
+  const config={duration:800,pulseInterval:4000};
+  const formatMoney=(value,compact=false)=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:compact?1:0,notation:compact?'compact':'standard'}).format(Number(value||0));
+  function animate(el,start,end,options={}){if(!el)return;const started=performance.now();const duration=options.duration||config.duration;function frame(now){const p=Math.min((now-started)/duration,1);const eased=1-Math.pow(1-p,3);const value=start+(end-start)*eased;el.textContent=options.money?formatMoney(value,options.compact):Math.round(value).toLocaleString('es-MX');if(p<1)requestAnimationFrame(frame)}requestAnimationFrame(frame)}
+  function glow(el,value,thresholds={}){if(!el)return;const{warning=0,danger=0}=thresholds;el.classList.remove('glow-green','glow-red','glow-yellow');el.classList.add(value>warning?'glow-green':value<danger?'glow-red':'glow-yellow')}
+  function kpi(id,value,options={}){const el=document.getElementById(id);if(!el)return;animate(el,options.start||0,value,options);glow(el,value,options.thresholds||{})}
+  function pulse(selector='.card-value'){return setInterval(()=>document.querySelectorAll(selector).forEach(el=>{el.animate([{opacity:1},{opacity:.58},{opacity:1}],{duration:650,easing:'ease'})}),config.pulseInterval)}
+  function smartHover(selector){document.querySelectorAll(`${selector} tbody tr`).forEach(row=>{row.addEventListener('mouseenter',()=>row.style.transform='translateX(2px)');row.addEventListener('mouseleave',()=>row.style.transform='')})}
+  function init(options={}){if(options.pulse&&!matchMedia('(prefers-reduced-motion: reduce)').matches)pulse(options.selector);if(options.table)smartHover(options.table)}
+  return{kpi,glow,animate,pulse,smartHover,formatMoney,init};
+})();
+</script>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090b10">
+    <title>SARA · KBS Business</title>
+    <?!= include_('Styles'); ?>
+    <?!= include_('StylesV2'); ?>
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"><span>K</span></div>
+          <div><strong>KBS</strong><small>SARA · Intelligence</small></div>
+        </div>
+
+        <nav class="nav-list" id="navList">
+          <button class="nav-item active" data-view="overview"><span class="nav-icon">DG</span><span>Dashboard general</span></button>
+          <button class="nav-item" data-view="alerts"><span class="nav-icon">AL</span><span>Centro de alertas</span><span class="nav-badge" id="alertBadge">0</span></button>
+          <p class="nav-label">Operación</p>
+          <button class="nav-item" data-view="crm"><span class="nav-icon">CRM</span><span>CRM</span></button>
+          <button class="nav-item" data-view="billing"><span class="nav-icon">FAC</span><span>Facturación</span></button>
+          <button class="nav-item" data-view="training"><span class="nav-icon">CAP</span><span>Capacitación</span></button>
+          <button class="nav-item" data-view="contingency"><span class="nav-icon">CON</span><span>Contingencia</span></button>
+          <button class="nav-item" data-view="safety"><span class="nav-icon">SN</span><span>Seguridad y normas</span></button>
+          <p class="nav-label">Administración</p>
+          <button class="nav-item" data-view="hr"><span class="nav-icon">RH</span><span>Recursos humanos</span></button>
+          <button class="nav-item" data-view="commercial"><span class="nav-icon">CM</span><span>Comercial y marketing</span></button>
+          <button class="nav-item" data-view="evaluations"><span class="nav-icon">EV</span><span>Evaluaciones N4</span></button>
+          <button class="nav-item" data-view="hierarchies"><span class="nav-icon">AC</span><span>Accesos y jerarquías</span></button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="system-status"><i></i><span>Motor conectado</span></div>
+          <small>Hyperion UI Engine v1.0</small>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button class="icon-button mobile-menu" id="menuButton" aria-label="Abrir menú">MENU</button>
+          <div class="page-heading">
+            <p id="pageEyebrow">PANEL EJECUTIVO</p>
+            <h1 id="pageTitle">Dashboard general</h1>
+          </div>
+          <div class="topbar-actions">
+            <div class="last-update"><span>Actualizado</span><strong id="lastUpdate">—</strong></div>
+            <button class="icon-button theme-button" id="themeButton" aria-label="Cambiar tema"><span>MODO</span> CLARO</button>
+            <button class="icon-button" id="refreshButton" aria-label="Actualizar datos">ACT</button>
+            <button class="profile-button" id="profileButton" aria-label="Perfil de usuario">
+              <span class="avatar" id="userInitials">KB</span>
+              <span class="profile-copy"><strong id="userName">Cargando…</strong><small id="userRole">Validando acceso</small></span>
+              <span aria-hidden="true">⌄</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="content" id="content" aria-live="polite">
+          <section class="view active" data-view-panel="overview">
+            <div class="welcome-row">
+              <div><p class="section-kicker">VISIÓN CONSOLIDADA</p><h2>El pulso de KBS, en tiempo real.</h2></div>
+              <div class="period-chip"><span></span><strong>Periodo actual</strong><small id="currentPeriod"></small></div>
+            </div>
+
+            <div class="kpi-grid" id="kpiGrid"></div>
+
+            <div class="dashboard-grid">
+              <article class="panel revenue-panel">
+                <div class="panel-heading">
+                  <div><p class="section-kicker">RENDIMIENTO</p><h3>Facturación vs. meta</h3></div>
+                  <div class="legend"><span class="actual"></span>Facturación <span class="target"></span>Meta</div>
+                </div>
+                <div class="chart-summary"><strong id="chartTotal">$0</strong><span id="chartDelta">—</span></div>
+                <div class="line-chart" id="revenueChart" role="img" aria-label="Tendencia de facturación contra meta"></div>
+              </article>
+
+              <article class="panel alerts-panel">
+                <div class="panel-heading">
+                  <div><p class="section-kicker">ATENCIÓN REQUERIDA</p><h3>Centro de alertas</h3></div>
+                  <button class="text-button" data-go="alerts">Ver todas</button>
+                </div>
+                <div id="alertList" class="alert-list"></div>
+              </article>
+
+              <article class="panel crm-panel">
+                <div class="panel-heading">
+                  <div><p class="section-kicker">OPORTUNIDADES</p><h3>Embudo comercial</h3></div>
+                  <button class="text-button" data-go="crm">Abrir CRM</button>
+                </div>
+                <div id="crmFunnel" class="funnel"></div>
+              </article>
+
+              <article class="panel progress-panel">
+                <div class="panel-heading">
+                  <div><p class="section-kicker">PROYECTOS</p><h3>Avance operativo</h3></div>
+                  <span class="status-pill good">En objetivo</span>
+                </div>
+                <div id="projectProgress" class="project-progress"></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="view" data-view-panel="alerts">
+            <div class="section-header"><div><p class="section-kicker">CONTROL DE VENCIMIENTOS</p><h2>Centro de alertas</h2></div><div class="traffic-legend"><span class="critical"></span>Crítico 0–7 días <span class="soon"></span>Próximo 8–60 <span class="valid"></span>Vigente +60</div></div>
+            <article class="panel table-panel"><div class="table-toolbar"><input id="alertSearch" type="search" placeholder="Buscar alerta…" aria-label="Buscar alertas"><span id="alertCount">0 registros</span></div><div class="table-wrap"><table><thead><tr><th>Prioridad</th><th>Concepto</th><th>Área</th><th>Responsable</th><th>Vencimiento</th><th>Días</th></tr></thead><tbody id="alertsTableBody"></tbody></table></div></article>
+          </section>
+
+          <section class="view" data-view-panel="hierarchies">
+            <div class="section-header"><div><p class="section-kicker">GOBIERNO DE ACCESO</p><h2>Accesos y jerarquías</h2><p class="section-description">Administra personas, roles y los módulos visibles para cada cuenta.</p></div><div class="hierarchy-actions"><span class="access-chip" id="hierarchyAccess">SUPERADMIN</span><button class="button primary" id="newPersonButton" type="button">NUEVA PERSONA</button></div></div>
+            <article class="panel table-panel"><div class="table-toolbar"><input id="hierarchySearch" type="search" placeholder="Buscar persona, área o correo…" aria-label="Buscar jerarquías"><span id="hierarchyCount">0 personas</span></div><div class="table-wrap"><table id="hierarchyTable"><thead><tr><th>ID</th><th>Nombre</th><th>Departamento</th><th>Puesto</th><th>Estatus</th><th>Rol</th><th>Correo</th><th></th></tr></thead><tbody id="hierarchyTableBody"></tbody></table></div></article>
+          </section>
+
+          <section class="view" data-view-panel="module">
+            <div class="section-header"><div><p class="section-kicker" id="moduleKicker">MÓDULO</p><h2 id="moduleTitle">Módulo</h2><p class="section-description" id="moduleDescription"></p></div><span class="access-chip">Sincronizado con Sheets</span></div>
+            <div class="module-kpis" id="moduleKpis"></div>
+            <article class="panel module-empty"><div class="module-symbol" id="moduleSymbol">MOD</div><h3 id="moduleMessage">Vista preparada</h3><p>La estructura está lista para recibir registros operativos desde su pestaña correspondiente.</p></article>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast-stack" id="toastStack" aria-live="assertive"></div>
+    <div class="modal-backdrop" id="accessModal" hidden>
+      <form class="modal access-modal" id="accessForm">
+        <div class="modal-heading"><div><p class="section-kicker">CONTROL DE ACCESO</p><h3 id="accessModalTitle">Configurar persona</h3></div><button type="button" class="icon-button" data-close-access aria-label="Cerrar">X</button></div>
+        <input type="hidden" id="personId">
+        <div class="form-grid">
+          <label class="form-field"><span>Nombre</span><input id="personName" required autocomplete="off"></label>
+          <label class="form-field"><span>Correo corporativo</span><input id="personEmail" type="email" required autocomplete="off"></label>
+          <label class="form-field"><span>Departamento</span><input id="personDepartment" required autocomplete="off"></label>
+          <label class="form-field"><span>Puesto</span><input id="personPosition" required autocomplete="off"></label>
+          <label class="form-field"><span>Estatus</span><select id="personStatus"><option value="ACTIVO">ACTIVO</option><option value="INACTIVO">INACTIVO</option></select></label>
+          <label class="form-field"><span>Rol base</span><select id="personRole"><option value="TRABAJADOR">N1 · TRABAJADOR</option><option value="LÍDER">N2 · LÍDER</option><option value="COORDINADOR">N3 · COORDINADOR</option><option value="DIRECCIÓN">N4 · DIRECCIÓN</option></select></label>
+          <div class="form-field full"><span>Secciones visibles en el menú</span><div class="permission-grid" id="permissionGrid"></div></div>
+        </div>
+        <div class="security-note">Sólo innovacion@kbsbusiness.com puede guardar estos cambios. Toda modificación queda registrada en Bitacora.</div>
+        <div class="modal-actions"><button type="button" class="button secondary" data-close-access>CANCELAR</button><button type="submit" class="button primary">GUARDAR CAMBIOS</button></div>
+      </form>
+    </div>
+    <div class="auth-screen" id="authScreen" hidden>
+      <div class="auth-card"><div class="brand-mark" aria-hidden="true"><span>K</span></div><p class="section-kicker">SARA · ACCESO CORPORATIVO</p><h1>Identifícate con Google</h1><p id="authMessage">Usa tu cuenta corporativa para consultar la información autorizada para tu perfil.</p><button class="button primary" id="signInButton" type="button">CONTINUAR CON GOOGLE</button><div class="auth-domain">Acceso exclusivo para cuentas @kbsbusiness.com</div></div>
+    </div>
+    <div class="loading-screen" id="loadingScreen"><div class="loading-mark">K</div><strong>Iniciando SARA</strong><span>Validando identidad y permisos</span></div>
+    <?!= include_('Hyperion'); ?>
+    <?!= include_('AppV2'); ?>
+  </body>
+</html>
+
