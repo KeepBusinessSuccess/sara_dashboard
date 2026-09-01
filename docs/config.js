@@ -1,0 +1,11 @@
+window.SARA_GITHUB_CONFIG = Object.freeze({
+  googleClientId: '55530186275-cig6tqb3dnmjjnt5adrv0fpqqp2h2mq3.apps.googleusercontent.com',
+  gatewayDeploymentId: 'AKfycbztH5HMSnYl7Ak0agBzaK0ojS3T4p1YXzLZKPL39aOjRcJGmtRq5iI2YpkNwTkt0IAicA',
+  allowedDomain: 'kbsbusiness.com',
+  superAdminEmail: 'innovacion@kbsbusiness.com',
+  demoMode: false,
+  oauthScopes: [
+    'https://www.googleapis.com/auth/script.external_request',
+    'https://www.googleapis.com/auth/userinfo.email'
+  ]
+});
