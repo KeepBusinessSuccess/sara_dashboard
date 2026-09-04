@@ -69,9 +69,9 @@
   @media(max-width:820px){.theme-button{min-width:68px}.theme-button span{display:none}.form-grid{grid-template-columns:1fr}.permission-grid{grid-template-columns:1fr}}
 </style>
 
-    <script src="./config.js?v=4.0.0"></script>
+    <script src="./config.js?v=5.0.0"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="./auth.js?v=4.0.0"></script>
+    <script src="./auth.js?v=5.0.0"></script>
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -195,6 +195,22 @@
             <div class="projects-toolbar" id="projectsToolbar"></div>
             <div class="projects-status" id="projectsStatus">Selecciona un área para consultar sus indicadores.</div>
             <div class="projects-content" id="projectsContent" hidden></div>
+          </section>
+
+          <section class="view" data-view-panel="hr">
+            <div class="section-header hr-direction-heading">
+              <div><p class="section-kicker">CAPITAL HUMANO</p><h2>Dirección</h2><p class="section-description">Resumen ejecutivo de plantilla, sostenibilidad, crecimiento y cumplimiento.</p></div>
+              <span class="access-chip" id="hrDirectionUpdatedAt">SIN CARGAR</span>
+            </div>
+            <div class="hr-direction-toolbar" id="hrDirectionToolbar">
+              <label><span>Departamento</span><select id="hrDepartment"><option value="TODOS">Todos</option></select></label>
+              <label><span>Mes</span><select id="hrMonth"><option value="TODOS">Todos</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></label>
+              <label><span>Año</span><select id="hrYear"><option value="TODOS">Todos</option></select></label>
+              <button type="button" class="button secondary" id="hrReset">RESTABLECER</button>
+              <button type="button" class="button secondary" id="hrRefresh">ACTUALIZAR</button>
+            </div>
+            <div class="hr-direction-status" id="hrDirectionStatus">Abre Recursos Humanos para consultar Dirección.</div>
+            <div class="hr-direction-content" id="hrDirectionContent" hidden></div>
           </section>
 
           <section class="view" data-view-panel="module">
@@ -405,6 +421,73 @@ window.SaraProjects=(()=>{
     document.getElementById('projectsTabs').addEventListener('click',event=>{const button=event.target.closest('[data-project-area]');if(button)request(button.dataset.projectArea)});
     document.getElementById('navList').addEventListener('click',event=>{const button=event.target.closest('[data-view="projects"]');if(button)open()});
   }
+  document.addEventListener('DOMContentLoaded',bind);
+  return{open,request};
+})();
+</script>
+
+    <style>
+  .hr-direction-heading{margin-bottom:16px}.hr-direction-toolbar{display:grid;grid-template-columns:minmax(220px,2fr) minmax(130px,1fr) minmax(130px,1fr) auto auto;gap:10px;align-items:end;margin-bottom:16px;padding:15px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+  .hr-direction-toolbar label{display:grid;gap:6px}.hr-direction-toolbar label span{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.hr-direction-toolbar select{min-height:40px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--text)}
+  .hr-direction-status{min-height:150px;display:grid;place-items:center;padding:25px;border:1px dashed var(--line);border-radius:var(--radius);background:var(--surface);color:var(--muted);text-align:center}.hr-direction-status[hidden]{display:none!important}.hr-direction-content{display:grid;gap:16px}
+  .hr-block{padding:18px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}.hr-block-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:14px}.hr-block-heading h3{margin:0;font-size:16px}.hr-block-heading span{color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  .hr-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.hr-kpis.three{grid-template-columns:repeat(3,minmax(0,1fr))}.hr-kpi{min-width:0;padding:15px;border:1px solid var(--line-soft);border-top:3px solid var(--accent);border-radius:11px;background:var(--surface-2)}.hr-kpi.good{border-top-color:var(--green)}.hr-kpi.warn{border-top-color:var(--orange)}.hr-kpi.bad{border-top-color:var(--red)}.hr-kpi.info{border-top-color:var(--cyan)}.hr-kpi span{display:block;color:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase}.hr-kpi strong{display:block;margin:8px 0 3px;font-size:25px;line-height:1.1}.hr-kpi small{color:var(--muted);font-size:11px}
+  .hr-subheading{margin:18px 0 11px;padding-top:15px;border-top:1px solid var(--line-soft);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.hr-table-wrap{overflow:auto}.hr-table{width:100%;border-collapse:collapse}.hr-table th,.hr-table td{padding:10px 8px;border-bottom:1px solid var(--line-soft);font-size:12px;text-align:left}.hr-table th{color:var(--muted);font-size:10px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}.hr-table td.number,.hr-table th.number{text-align:right}.hr-level{display:inline-block;padding:4px 8px;border-radius:20px;background:var(--surface-3);font-size:10px;font-weight:800}.hr-level.good{color:var(--green)}.hr-level.warn{color:var(--orange)}.hr-level.bad{color:var(--red)}
+  .hr-supplier-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.hr-supplier-card{padding:15px;border:1px solid var(--line-soft);border-radius:11px;background:var(--surface-2)}.hr-supplier-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.hr-supplier-title strong{font-size:13px}.hr-supplier-title span{color:var(--muted);font-size:11px}.hr-supplier-periods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.hr-supplier-period{padding:10px;border-radius:8px;background:var(--surface-3)}.hr-supplier-period span,.hr-supplier-period small{display:block;color:var(--muted);font-size:9px}.hr-supplier-period strong{display:block;margin:5px 0;font-size:20px}.hr-check{font-size:9px;font-weight:900}.hr-check.ok{color:var(--green)}.hr-check.pending{color:var(--red)}
+  @media(max-width:1050px){.hr-direction-toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}.hr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){.hr-direction-toolbar,.hr-kpis,.hr-kpis.three,.hr-supplier-grid{grid-template-columns:1fr}.hr-supplier-periods{grid-template-columns:1fr}}
+</style>
+<script>
+window.SaraHrDirection=(()=>{
+  let data=null;
+  const storageKey='sara-hr-direction-v1';
+  const ttl=10*60*1000;
+  const nf=new Intl.NumberFormat('es-MX',{maximumFractionDigits:1});
+  const months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const escape=value=>String(value==null?'':value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const kpi=(label,value,note='',kind='')=>`<article class="hr-kpi ${kind}"><span>${escape(label)}</span><strong>${escape(value)}</strong><small>${escape(note)}</small></article>`;
+  function sample(){return{filters:{departments:['CAPITAL HUMANO','SEGURIDAD'],years:[2026,2025]},plantilla:{active:[{department:'CAPITAL HUMANO',direct:11,indirect:2,total:13},{department:'SEGURIDAD',direct:34,indirect:4,total:38}],movements:[{department:'CAPITAL HUMANO',year:2026,month:9,hires:2,terminations:1,rotationLosses:1}]},recruitment:[{department:'CAPITAL HUMANO',vacancies:2,openYear:2026,openMonth:9,closeYear:2026,closeMonth:9,closed:true,businessDays:8}],climate:[{department:'CAPITAL HUMANO',year:2026,month:8,surveys:9,scoreSum:39.6,leadership:{q9:{sum:39,count:9},q10:{sum:37,count:9},q11:{sum:40,count:9},q12:{sum:38,count:9}}}],fiscal:{years:['2026'],records:[{year:'2026',concept:'IVA',months:[true,true,true,true,true,true,true,true,false,false,false,false]},{year:'2026',concept:'IMSS',months:[true,true,true,true,true,true,true,false,false,false,false,false]}]},suppliers:{source:'demo',updatedAt:'Demostración',movimiento:{companies:28,monthly:{total:84,complete:6,pending:78,compliance:7},semiannual:{total:28,complete:0,pending:28,compliance:0},annual:{total:168,complete:78,pending:90,compliance:46}},proveedores:{companies:85,monthly:{total:255,complete:20,pending:235,compliance:8},semiannual:{total:85,complete:2,pending:83,compliance:2},annual:{total:425,complete:41,pending:384,compliance:10}}},generatedAt:'Demostración'}}
+  function readStored(){try{const value=JSON.parse(sessionStorage.getItem(storageKey)||'null');return value&&Date.now()-value.savedAt<ttl?value.data:null}catch(error){return null}}
+  function store(value){try{sessionStorage.setItem(storageKey,JSON.stringify({savedAt:Date.now(),data:value}))}catch(error){}}
+  async function request(force=false){
+    const status=document.getElementById('hrDirectionStatus');const content=document.getElementById('hrDirectionContent');
+    status.hidden=false;content.hidden=true;status.textContent='Cargando indicadores de Recursos Humanos.';
+    try{
+      data=!force&&(data||readStored());
+      if(!data){if(window.SaraBridge&&SaraBridge.isDemo())data=sample();else{const response=await SaraBridge.run('apiGetHrDirectionDashboard');data=response.data}store(data)}
+      fillFilters();render();status.hidden=true;content.hidden=false;document.getElementById('hrDirectionUpdatedAt').textContent=data.generatedAt||'ACTUALIZADO';
+    }catch(error){status.textContent='No fue posible cargar Recursos Humanos: '+(error&&error.message?error.message:error)}
+  }
+  function fillFilters(){
+    const department=document.getElementById('hrDepartment');const year=document.getElementById('hrYear');const currentDepartment=department.value;const currentYear=year.value;
+    department.innerHTML='<option value="TODOS">Todos</option>'+(data.filters.departments||[]).map(value=>`<option value="${escape(value)}">${escape(value)}</option>`).join('');
+    year.innerHTML='<option value="TODOS">Todos</option>'+(data.filters.years||[]).map(value=>`<option value="${value}">${value}</option>`).join('');
+    if([...department.options].some(option=>option.value===currentDepartment))department.value=currentDepartment;if([...year.options].some(option=>option.value===currentYear))year.value=currentYear;
+  }
+  function level(score,count){if(!count)return{label:'SIN DATOS',kind:''};if(score>=4.5)return{label:'EXCELENTE',kind:'good'};if(score>=3.5)return{label:'BUENO',kind:'good'};if(score>=2.5)return{label:'REGULAR',kind:'warn'};return{label:'DEFICIENTE',kind:'bad'}}
+  function matches(record,department){return department==='TODOS'||record.department===department}
+  function matchesPeriod(year,month,selectedYear,selectedMonth){return(selectedYear==='TODOS'||Number(year)===Number(selectedYear))&&(selectedMonth==='TODOS'||Number(month)===Number(selectedMonth))}
+  function fiscalAverages(records,selectedMonth){const fiscal=['IVA','ISR','ISN','SUA'];const patronal=['IMSS','INFONAVIT','FONACOT','SAT'];let ft=0,fc=0,pt=0,pc=0;records.forEach(record=>record.months.forEach((checked,index)=>{if(selectedMonth!=='TODOS'&&index!==Number(selectedMonth)-1)return;if(fiscal.includes(record.concept)){ft++;if(checked)fc++}if(patronal.includes(record.concept)){pt++;if(checked)pc++}}));return{fiscal:ft?fc*100/ft:0,patronal:pt?pc*100/pt:0,total:ft+pt?(fc+pc)*100/(ft+pt):0}}
+  function supplierCard(title,source){const rows=[['Mensual','monthly'],['Semestral','semiannual'],['Anual','annual']];return`<article class="hr-supplier-card"><div class="hr-supplier-title"><strong>${escape(title)}</strong><span>${Number(source.companies||0)} empresas</span></div><div class="hr-supplier-periods">${rows.map(([label,key])=>{const item=source[key]||{};return`<div class="hr-supplier-period"><span>${label}</span><strong>${nf.format(item.compliance||0)}%</strong><small>${Number(item.complete||0)} de ${Number(item.total||0)} entregados</small><small>${Number(item.pending||0)} pendientes</small></div>`}).join('')}</div></article>`}
+  function leadershipRow(label,item){const average=item.count?item.sum/item.count:0;const result=level(average,item.count);return`<tr><td>${escape(label)}</td><td class="number">${average.toFixed(2)}</td><td class="number"><span class="hr-level ${result.kind}">${result.label}</span></td><td class="number">${nf.format(average*20)}%</td></tr>`}
+  function render(){
+    const department=document.getElementById('hrDepartment').value;const selectedYear=document.getElementById('hrYear').value;const selectedMonth=document.getElementById('hrMonth').value;
+    const active=(data.plantilla.active||[]).filter(row=>matches(row,department)).reduce((result,row)=>({direct:result.direct+row.direct,indirect:result.indirect+row.indirect,total:result.total+row.total}),{direct:0,indirect:0,total:0});
+    const movements=(data.plantilla.movements||[]).filter(row=>matches(row,department)&&matchesPeriod(row.year,row.month,selectedYear,selectedMonth));const movement=movements.reduce((result,row)=>({hires:result.hires+row.hires,terminations:result.terminations+row.terminations,rotationLosses:result.rotationLosses+row.rotationLosses}),{hires:0,terminations:0,rotationLosses:0});
+    const denominator=active.direct+movement.rotationLosses;const rotation=denominator?movement.rotationLosses*100/denominator:0;const retention=denominator?active.direct*100/denominator:100;
+    const recruitment=(data.recruitment||[]).filter(row=>matches(row,department));let requested=0,closedRequested=0,pending=0,weightedDays=0,timedVacancies=0;recruitment.forEach(row=>{if(!row.closed)pending+=row.vacancies;if(matchesPeriod(row.openYear,row.openMonth,selectedYear,selectedMonth)){requested+=row.vacancies;if(row.closed)closedRequested+=row.vacancies}if(row.closed&&matchesPeriod(row.closeYear,row.closeMonth,selectedYear,selectedMonth)){weightedDays+=row.businessDays*row.vacancies;timedVacancies+=row.vacancies}});const hiringCompliance=requested?closedRequested*100/requested:0;const averageDays=timedVacancies?weightedDays/timedVacancies:0;
+    const climate=(data.climate||[]).filter(row=>matches(row,department)&&(selectedYear==='TODOS'||Number(row.year)===Number(selectedYear)));const climateTotal=climate.reduce((sum,row)=>sum+row.surveys,0);const climateScore=climateTotal?climate.reduce((sum,row)=>sum+row.scoreSum,0)/climateTotal:0;const climateLevel=level(climateScore,climateTotal);const climateCompliance=Math.min(100,active.direct?climateTotal*100/active.direct:0);const leadership={q9:{sum:0,count:0},q10:{sum:0,count:0},q11:{sum:0,count:0},q12:{sum:0,count:0}};climate.forEach(row=>Object.keys(leadership).forEach(key=>{const item=row.leadership&&row.leadership[key];if(item){leadership[key].sum+=item.sum;leadership[key].count+=item.count}}));const overall=Object.values(leadership).reduce((result,item)=>({sum:result.sum+item.sum,count:result.count+item.count}),{sum:0,count:0});
+    const fiscalYear=selectedYear!=='TODOS'?String(selectedYear):String((data.fiscal.years||[])[0]||new Date().getFullYear());const fiscalRecords=(data.fiscal.records||[]).filter(row=>String(row.year)===fiscalYear);const fiscal=fiscalAverages(fiscalRecords,selectedMonth);const suppliers=data.suppliers||{};
+    const fiscalRows=fiscalRecords.map(row=>`<tr><td>${escape(row.concept)}</td>${row.months.map(value=>`<td class="number"><span class="hr-check ${value?'ok':'pending'}">${value?'OK':'PEND'}</span></td>`).join('')}</tr>`).join('')||'<tr><td colspan="13">Sin datos fiscales para el año seleccionado.</td></tr>';
+    document.getElementById('hrDirectionContent').innerHTML=`
+      <section class="hr-block"><div class="hr-block-heading"><h3>Plantilla actual</h3><span>${department==='TODOS'?'Todos los departamentos':escape(department)}</span></div><div class="hr-kpis three">${kpi('Directos',active.direct,'Personal activo','info')}${kpi('Indirectos',active.indirect,'Personal activo')}${kpi('Total',active.total,'Plantilla activa','good')}</div></section>
+      <section class="hr-block"><div class="hr-block-heading"><h3>Sostenibilidad</h3><span>Sólo directos</span></div><div class="hr-kpis">${kpi('Altas',movement.hires,'Periodo seleccionado','good')}${kpi('Bajas',movement.terminations,'Periodo seleccionado','bad')}${kpi('Rotación',nf.format(rotation)+'%','Excluye término natural','bad')}${kpi('Retención',nf.format(retention)+'%','Personal directo','good')}</div><div class="hr-subheading">Clima laboral</div><div class="hr-kpis">${kpi('Total encuestas',climateTotal,'Departamento y año','info')}${kpi('Cumplimiento',nf.format(climateCompliance)+'%','Contra personal directo','warn')}${kpi('Resultado total',nf.format(climateScore*20)+'%','Promedio de respuestas','good')}${kpi('Nivel',climateLevel.label,'Evaluación de clima',climateLevel.kind)}</div></section>
+      <section class="hr-block"><div class="hr-block-heading"><h3>Rentabilidad</h3><span>Tiempo de contratación en días hábiles</span></div><div class="hr-kpis">${kpi('Solicitadas',requested,'Vacantes del periodo','info')}${kpi('Cumplimiento',nf.format(hiringCompliance)+'%','Solicitudes ya cerradas','good')}${kpi('Pendientes',pending,'Vacantes abiertas actuales','bad')}${kpi('Promedio días',Math.round(averageDays),'Cierres del periodo','warn')}</div></section>
+      <section class="hr-block"><div class="hr-block-heading"><h3>Crecimiento</h3><span>Resultado ${department==='TODOS'?'general':escape(department)}</span></div><div class="hr-table-wrap"><table class="hr-table"><thead><tr><th>Dimensión o pregunta evaluada</th><th class="number">Promedio</th><th class="number">Resultado</th><th class="number">Porcentaje</th></tr></thead><tbody>${leadershipRow('Crecimiento',overall)}${leadershipRow('Mi líder reconoce mi trabajo y esfuerzo',leadership.q11)}${leadershipRow('Recibo retroalimentación constructiva sobre mi desempeño',leadership.q10)}${leadershipRow('Confío en las decisiones de la dirección',leadership.q12)}${leadershipRow('Mi jefe inmediato es justo en sus decisiones',leadership.q9)}</tbody></table></div></section>
+      <section class="hr-block"><div class="hr-block-heading"><h3>Cumplimiento fiscal y patronal</h3><span>${escape(fiscalYear)}</span></div><div class="hr-kpis three">${kpi('Promedio fiscal',nf.format(fiscal.fiscal)+'%','IVA, ISR, ISN y SUA','warn')}${kpi('Promedio patronal',nf.format(fiscal.patronal)+'%','IMSS, INFONAVIT, FONACOT y SAT','warn')}${kpi('Cumplimiento total',nf.format(fiscal.total)+'%','Periodo seleccionado','good')}</div><div class="hr-subheading">Cumplimiento documental de proveedores</div><p class="section-description">Datos actualizados desde la matriz documental: ${escape(suppliers.updatedAt||'Sin fecha')}</p><div class="hr-supplier-grid">${supplierCard('Movimiento interno',suppliers.movimiento||{})}${supplierCard('Proveedores',suppliers.proveedores||{})}</div><div class="hr-table-wrap"><table class="hr-table"><thead><tr><th>Concepto</th>${months.map(month=>`<th class="number">${month}</th>`).join('')}</tr></thead><tbody>${fiscalRows}</tbody></table></div></section>`;
+  }
+  function reset(){document.getElementById('hrDepartment').value='TODOS';document.getElementById('hrMonth').value='TODOS';document.getElementById('hrYear').value='TODOS';render()}
+  function open(){document.getElementById('pageTitle').textContent='Recursos humanos';request(false)}
+  function bind(){['hrDepartment','hrMonth','hrYear'].forEach(id=>document.getElementById(id).addEventListener('change',render));document.getElementById('hrReset').addEventListener('click',reset);document.getElementById('hrRefresh').addEventListener('click',()=>{data=null;try{sessionStorage.removeItem(storageKey)}catch(error){}request(true)});document.getElementById('navList').addEventListener('click',event=>{const button=event.target.closest('[data-view="hr"]');if(button)open()})}
   document.addEventListener('DOMContentLoaded',bind);
   return{open,request};
 })();
