@@ -38,17 +38,38 @@ window.SaraBridge = (() => {
     if (!isConfigured()) return Promise.reject(new Error('Falta configurar Google OAuth y el Deployment ID.'));
     initializeClient();
     return new Promise((resolve, reject) => {
-      pendingAuth = { resolve, reject };
+      const timeout = setTimeout(() => {
+        if (!pendingAuth) return;
+        pendingAuth = null;
+        reject(new Error('Google no completó el acceso en 90 segundos. Cierra otros popups de Google e inténtalo nuevamente.'));
+      }, 90000);
+      pendingAuth = {
+        resolve: value => { clearTimeout(timeout); resolve(value); },
+        reject: error => { clearTimeout(timeout); reject(error); }
+      };
       tokenClient.requestAccessToken({ prompt: 'select_account' });
     });
   }
   async function run(functionName, ...parameters) {
     if (!accessToken || Date.now() >= expiresAt - 360000) throw new Error('La sesión expiró. Vuelve a iniciar sesión.');
-    const response = await fetch(`https://script.googleapis.com/v1/scripts/${encodeURIComponent(config().gatewayDeploymentId)}:run`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ function: 'gatewayRun', parameters: [functionName, parameters], devMode: false })
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 75000);
+    let response;
+    try {
+      response = await fetch(`https://script.googleapis.com/v1/scripts/${encodeURIComponent(config().gatewayDeploymentId)}:run`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ function: 'gatewayRun', parameters: [functionName, parameters], devMode: false }),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        throw new Error('El Gateway tardó más de 75 segundos. Revisa las Ejecuciones del Gateway y del Backend.');
+      }
+      throw new Error('No fue posible contactar el Gateway: ' + (error && error.message ? error.message : error));
+    } finally {
+      clearTimeout(timeout);
+    }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error && payload.error.message || `Error de conexión ${response.status}.`);
     if (payload.error) {

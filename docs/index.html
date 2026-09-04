@@ -69,9 +69,9 @@
   @media(max-width:820px){.theme-button{min-width:68px}.theme-button span{display:none}.form-grid{grid-template-columns:1fr}.permission-grid{grid-template-columns:1fr}}
 </style>
 
-    <script src="./config.js?v=3.1.1"></script>
+    <script src="./config.js?v=4.0.0"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="./auth.js?v=3.1.1"></script>
+    <script src="./auth.js?v=4.0.0"></script>
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -328,7 +328,7 @@ const SARA_APP=(()=>{
   .projects-tab:hover{color:var(--text);border-color:#5b626e}.projects-tab.active{color:#111;border-color:var(--accent);background:var(--accent)}
   .projects-toolbar{display:flex;align-items:end;justify-content:space-between;gap:12px;min-height:50px;margin-bottom:14px}.projects-filter{display:grid;gap:5px;min-width:210px}.projects-filter span{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
   .projects-filter select{min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--text)}
-  .projects-status{min-height:150px;display:grid;place-items:center;padding:25px;border:1px dashed var(--line);border-radius:var(--radius);background:var(--surface);color:var(--muted);font-size:14px;text-align:center}
+  .projects-status{min-height:150px;display:grid;place-items:center;padding:25px;border:1px dashed var(--line);border-radius:var(--radius);background:var(--surface);color:var(--muted);font-size:14px;text-align:center}.projects-status[hidden]{display:none!important}
   .projects-content{display:grid;gap:15px}.projects-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.projects-kpi{min-width:0;padding:17px;border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:var(--radius);background:var(--surface)}
   .projects-kpi.good{border-top-color:var(--green)}.projects-kpi.warn{border-top-color:var(--orange)}.projects-kpi.bad{border-top-color:var(--red)}.projects-kpi.info{border-top-color:var(--cyan)}
   .projects-kpi span{display:block;color:var(--muted);font-size:11px;letter-spacing:.04em;text-transform:uppercase}.projects-kpi strong{display:block;margin:10px 0 5px;font-size:25px;line-height:1.1;overflow-wrap:anywhere}.projects-kpi small{color:var(--muted);font-size:11px}
@@ -342,6 +342,8 @@ const SARA_APP=(()=>{
 <script>
 window.SaraProjects=(()=>{
   const cache={};
+  const storagePrefix='sara-projects-v4:';
+  const storageTtl=10*60*1000;
   let currentArea='seguristas';
   const months=[['YTD','Acumulado'],['1','Enero'],['2','Febrero'],['3','Marzo'],['4','Abril'],['5','Mayo'],['6','Junio'],['7','Julio'],['8','Agosto'],['9','Septiembre'],['10','Octubre'],['11','Noviembre'],['12','Diciembre']];
   const money=new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
@@ -350,20 +352,22 @@ window.SaraProjects=(()=>{
   const kpi=(label,value,note='',kind='')=>`<article class="projects-kpi ${kind}"><span>${escape(label)}</span><strong>${escape(value)}</strong><small>${escape(note)}</small></article>`;
   function sample(area){
     if(area==='seguristas')return{periods:{YTD:{label:'ACUMULADO',billing:{facturado:4850000,pagado:3920000,pendiente:930000,previousFacturado:3600000},fixedGeneral:{current:2450000,previous:2240000},utilityGeneral:{current:1790000,previous:1410000},fixedByPlant:[{client:'CLARIOS',plant:'OPTIMA',current:780000,previous:690000,growth:13}] }},specialProjects:[{label:'PAL NORTE',utility:390000}],generatedAt:'Demostración'};
-    if(area==='innovation')return{computers:{total:62,current:47,soon:7,overdue:3,critical:2,missing:3,compliance:75.8},support:{from:'01/09/2026',to:'30/09/2026',total:38,solved:31,pending:7,resolutionRate:81.6,averageHours:5.4,medianHours:3.8},generatedAt:'Demostración'};
-    return{periods:{YTD:{leads:286,prospects:91,injected:450000,spent:387000,byUnit:[{label:'SEGURIDAD',value:92},{label:'CAPACITACIÓN',value:61}]}},visits:{total:76,authorized:22,authorizedAmount:2750000,successRate:28.9},generatedAt:'Demostración'};
+    if(area==='innovation')return{computers:{total:62,current:47,soon:7,overdue:3,critical:2,missing:3,compliance:75.8},support:{periods:{YTD:{from:'01/01/2026',to:'31/12/2026',total:38,solved:31,pending:7,resolutionRate:81.6,averageHours:5.4,medianHours:3.8}}},generatedAt:'Demostración'};
+    return{periods:{YTD:{leads:286,prospects:91,injected:450000,spent:387000,byUnit:[{label:'SEGURIDAD',value:92},{label:'CAPACITACIÓN',value:61}]}},visits:{YTD:{total:76,authorized:22,authorizedAmount:2750000,successRate:28.9}},generatedAt:'Demostración'};
   }
+  function readStored(area){try{const value=JSON.parse(sessionStorage.getItem(storagePrefix+area)||'null');return value&&Date.now()-value.savedAt<storageTtl?value.data:null}catch(error){return null}}
+  function store(area,data){try{sessionStorage.setItem(storagePrefix+area,JSON.stringify({savedAt:Date.now(),data:data}))}catch(error){}}
   async function request(area,force=false){
     currentArea=area;
     document.querySelectorAll('[data-project-area]').forEach(button=>button.classList.toggle('active',button.dataset.projectArea===area));
     const content=document.getElementById('projectsContent');const status=document.getElementById('projectsStatus');
     content.hidden=true;status.hidden=false;status.textContent='Cargando indicadores de '+areaLabel(area)+'.';
     try{
-      let data=cache[area];
+      let data=cache[area]||(!force&&readStored(area));
       if(!data||force){
         if(window.SaraBridge&&SaraBridge.isDemo())data=sample(area);
         else{const response=await SaraBridge.run('apiGetProjectDashboard',area);data=response.data;}
-        cache[area]=data;
+        cache[area]=data;store(area,data);
       }
       render(area,data);status.hidden=true;content.hidden=false;
       document.getElementById('projectsUpdatedAt').textContent=data.generatedAt||'ACTUALIZADO';
@@ -386,14 +390,15 @@ window.SaraProjects=(()=>{
     const specials=(data.specialProjects||[]).map(item=>`<div class="projects-list-row"><span>${escape(item.label)}</span><strong>${money.format(item.utility||0)}</strong></div>`).join('')||'<div class="projects-list-row"><span>Sin registros</span><strong>—</strong></div>';
     document.getElementById('projectsContent').innerHTML=`<div class="projects-kpis">${kpi('Facturado',money.format(row.billing.facturado),'Periodo '+row.label,'info')}${kpi('Pagado',money.format(row.billing.pagado),'Cobrado','good')}${kpi('Pendiente',money.format(row.billing.pendiente),'Por cobrar','warn')}${kpi('Crecimiento',number.format(growth)+'%','Contra 2025',growth>=0?'good':'bad')}${kpi('Utilidad',money.format(row.utilityGeneral.current),'Utilidad general','good')}${kpi('Rentabilidad',number.format(margin)+'%','Utilidad sobre facturación',margin>=0?'good':'bad')}</div><div class="projects-grid"><article class="projects-panel"><h3>Proyectos especiales</h3><div class="projects-list">${specials}</div></article><article class="projects-panel"><h3>Retención de proyectos fijos</h3><div class="projects-table-wrap"><table class="projects-table"><thead><tr><th>Cliente</th><th>Planta</th><th class="number">Actual</th><th class="number">Variación</th></tr></thead><tbody>${plants}</tbody></table></div></article></div>`;
   }
-  function renderInnovation(data){
-    refreshOnly();const pc=data.computers||{};const support=data.support||{};
+  function renderInnovation(data){periodToolbar('innovation',()=>renderInnovationBody(data));renderInnovationBody(data)}
+  function renderInnovationBody(data){
+    const select=document.getElementById('innovationPeriod');const key=select?select.value:'YTD';const pc=data.computers||{};const support=(data.support&&data.support.periods?(data.support.periods[key]||data.support.periods.YTD):data.support)||{};
     document.getElementById('projectsContent').innerHTML=`<article class="projects-panel wide"><h3>Equipos de cómputo y mantenimiento</h3><div class="projects-kpis">${kpi('Equipos activos',pc.total||0,'Inventario')}${kpi('Al día',pc.current||0,'Mantenimiento vigente','good')}${kpi('Próximos',pc.soon||0,'Dentro de 30 días','warn')}${kpi('Vencidos',pc.overdue||0,'Requieren atención','bad')}${kpi('Críticos',pc.critical||0,'Salud o temperatura','bad')}${kpi('Sin datos',pc.missing||0,'Mantenimiento incompleto','info')}${kpi('Cumplimiento',number.format(pc.compliance||0)+'%','Equipos al día','good')}</div></article><article class="projects-panel wide"><h3>Soporte · ${escape(support.from||'')} a ${escape(support.to||'')}</h3><div class="projects-kpis">${kpi('Solicitudes',support.total||0,'Periodo actual','info')}${kpi('Resueltas',support.solved||0,'Casos cerrados','good')}${kpi('Pendientes',support.pending||0,'Casos abiertos','warn')}${kpi('Resolución',number.format(support.resolutionRate||0)+'%','Tasa de cierre','good')}${kpi('Promedio',support.averageHours==null?'—':number.format(support.averageHours)+' h','Tiempo hábil')}${kpi('Mediana',support.medianHours==null?'—':number.format(support.medianHours)+' h','Tiempo hábil')}</div></article>`;
   }
   function renderCommercial(data){periodToolbar('commercial',()=>renderCommercialBody(data));renderCommercialBody(data)}
   function renderCommercialBody(data){
-    const select=document.getElementById('commercialPeriod');const key=select?select.value:'YTD';const row=data.periods[key]||data.periods.YTD;const visits=data.visits||{};const conversion=row.leads?row.prospects*100/row.leads:0;const spend=row.injected?row.spent*100/row.injected:0;const units=row.byUnit||[];const max=Math.max(...units.map(item=>Number(item.value)||0),1);const bars=units.map(item=>`<div class="projects-bar-row"><span class="projects-bar-label">${escape(item.label)}</span><div class="projects-bar-track"><div class="projects-bar-fill" style="width:${(Number(item.value)||0)*100/max}%"></div></div><strong class="projects-bar-value">${number.format(item.value||0)}</strong></div>`).join('')||'<div class="projects-list-row"><span>Sin unidades registradas</span><strong>—</strong></div>';
-    document.getElementById('projectsContent').innerHTML=`<div class="projects-kpis">${kpi('Leads',number.format(row.leads||0),'Periodo seleccionado','info')}${kpi('Prospectos',number.format(row.prospects||0),'Calificados','good')}${kpi('Conversión',number.format(conversion)+'%','Prospectos sobre leads','good')}${kpi('Inyectado',money.format(row.injected||0),'Presupuesto')}${kpi('Gastado',money.format(row.spent||0),'Consumo','warn')}${kpi('Consumo',number.format(spend)+'%','Gastado sobre inyectado',spend>100?'bad':'good')}${kpi('Visitas',number.format(visits.total||0),'Histórico agregado','info')}${kpi('Venta autorizada',money.format(visits.authorizedAmount||0),number.format(visits.successRate||0)+'% de éxito','good')}</div><article class="projects-panel"><h3>Leads por unidad de negocio</h3><div class="projects-list">${bars}</div></article>`;
+    const select=document.getElementById('commercialPeriod');const key=select?select.value:'YTD';const row=data.periods[key]||data.periods.YTD;const visits=(data.visits&&data.visits[key])||(data.visits&&data.visits.YTD)||{};const conversion=row.leads?row.prospects*100/row.leads:0;const spend=row.injected?row.spent*100/row.injected:0;const units=row.byUnit||[];const max=Math.max(...units.map(item=>Number(item.value)||0),1);const bars=units.map(item=>`<div class="projects-bar-row"><span class="projects-bar-label">${escape(item.label)}</span><div class="projects-bar-track"><div class="projects-bar-fill" style="width:${(Number(item.value)||0)*100/max}%"></div></div><strong class="projects-bar-value">${number.format(item.value||0)}</strong></div>`).join('')||'<div class="projects-list-row"><span>Sin unidades registradas</span><strong>—</strong></div>';
+    document.getElementById('projectsContent').innerHTML=`<div class="projects-kpis">${kpi('Leads',number.format(row.leads||0),'Periodo seleccionado','info')}${kpi('Prospectos',number.format(row.prospects||0),'Calificados','good')}${kpi('Conversión',number.format(conversion)+'%','Prospectos sobre leads','good')}${kpi('Inyectado',money.format(row.injected||0),'Presupuesto')}${kpi('Gastado',money.format(row.spent||0),'Consumo','warn')}${kpi('Consumo',number.format(spend)+'%','Gastado sobre inyectado',spend>100?'bad':'good')}${kpi('Visitas',number.format(visits.total||0),'Periodo seleccionado','info')}${kpi('Venta autorizada',money.format(visits.authorizedAmount||0),number.format(visits.successRate||0)+'% de éxito','good')}</div><article class="projects-panel"><h3>Leads por unidad de negocio</h3><div class="projects-list">${bars}</div></article>`;
   }
   function open(){document.getElementById('pageTitle').textContent='Proyectos';request(currentArea)}
   function bind(){
