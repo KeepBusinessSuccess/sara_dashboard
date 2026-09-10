@@ -69,9 +69,9 @@
   @media(max-width:820px){.theme-button{min-width:68px}.theme-button span{display:none}.form-grid{grid-template-columns:1fr}.permission-grid{grid-template-columns:1fr}}
 </style>
 
-    <script src="./config.js?v=5.0.0"></script>
+    <script src="./config.js?v=6.0.0"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="./auth.js?v=5.0.0"></script>
+    <script src="./auth.js?v=6.0.0"></script>
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -85,6 +85,7 @@
           <button class="nav-item active" data-view="overview"><span class="nav-icon">DG</span><span>Dashboard general</span></button>
           <button class="nav-item" data-view="alerts"><span class="nav-icon">AL</span><span>Centro de alertas</span><span class="nav-badge" id="alertBadge">0</span></button>
           <button class="nav-item" data-view="projects"><span class="nav-icon">PR</span><span>Proyectos</span></button>
+          <button class="nav-item" data-view="historical"><span class="nav-icon">HIS</span><span>Histórico</span></button>
           <p class="nav-label">Operación</p>
           <button class="nav-item" data-view="crm"><span class="nav-icon">CRM</span><span>CRM</span></button>
           <button class="nav-item" data-view="billing"><span class="nav-icon">FAC</span><span>Facturación</span></button>
@@ -213,6 +214,21 @@
             <div class="hr-direction-content" id="hrDirectionContent" hidden></div>
           </section>
 
+          <section class="view" data-view-panel="historical">
+            <div class="section-header historical-heading">
+              <div><p class="section-kicker">ANÁLISIS CONSOLIDADO</p><h2>Histórico</h2><p class="section-description">Facturación acumulada y clientes principales por ejercicio y área operativa.</p></div>
+              <span class="access-chip" id="historicalUpdatedAt">SIN CARGAR</span>
+            </div>
+            <div class="historical-toolbar">
+              <label><span>Ejercicio fiscal</span><select id="historicalYear"><option value="TODOS">Todos los años</option></select></label>
+              <label><span>Área o departamento</span><select id="historicalDepartment"><option value="TODOS">Todos los departamentos</option></select></label>
+              <button type="button" class="button secondary" id="historicalReset">RESTABLECER</button>
+              <button type="button" class="button secondary" id="historicalRefresh">ACTUALIZAR</button>
+            </div>
+            <div class="historical-status" id="historicalStatus">Abre Histórico para consultar los indicadores.</div>
+            <div class="historical-content" id="historicalContent" hidden></div>
+          </section>
+
           <section class="view" data-view-panel="module">
             <div class="section-header"><div><p class="section-kicker" id="moduleKicker">MÓDULO</p><h2 id="moduleTitle">Módulo</h2><p class="section-description" id="moduleDescription"></p></div><span class="access-chip">Sincronizado con Sheets</span></div>
             <div class="module-kpis" id="moduleKpis"></div>
@@ -272,7 +288,7 @@ const SARA_APP=(()=>{
   };
   const demoData={
     user:{name:'Innovación KBS',email:'innovacion@kbsbusiness.com',role:'SUPER ADMIN',level:5,department:'Innovación'},
-    permissions:{canManageAccess:true,views:['overview','alerts','projects','crm','billing','training','contingency','safety','hr','commercial','evaluations','hierarchies']},
+    permissions:{canManageAccess:true,views:['overview','alerts','projects','historical','crm','billing','training','contingency','safety','hr','commercial','evaluations','hierarchies']},
     dashboard:{
       metrics:[
         {id:'revenue',label:'Facturación',value:2484000,display:'money',icon:'$',trend:'+12.4%',meta:'vs. mes anterior',color:'#ffd400',warning:2000000,danger:1400000},
@@ -316,7 +332,7 @@ const SARA_APP=(()=>{
   function renderFunnel(rows){const max=Math.max(...rows.map(x=>x.value),1);document.getElementById('crmFunnel').innerHTML=rows.map(row=>`<div class="funnel-row"><span>${escapeHtml(row.label)}</span><div class="funnel-track"><div class="funnel-fill" style="width:${row.value/max*100}%"></div></div><strong>${row.value}</strong></div>`).join('')}
   function renderProjects(rows){document.getElementById('projectProgress').innerHTML=rows.map(row=>`<div class="project-row"><header><span>${escapeHtml(row.name)}</span><strong>${Number(row.progress)}%</strong></header><div class="progress-track"><div class="progress-fill" style="width:${Math.max(0,Math.min(100,row.progress))}%"></div></div></div>`).join('')}
   function renderHierarchies(){const query=(document.getElementById('hierarchySearch').value||'').toLowerCase();const rows=(state.data.hierarchies||[]).filter(row=>Object.values(row).join(' ').toLowerCase().includes(query));const canManage=Boolean(state.data.permissions.canManageAccess);document.getElementById('hierarchyAccess').textContent=canManage?'SUPERADMIN EXCLUSIVO':'SIN PERMISO';document.getElementById('hierarchyCount').textContent=`${rows.length} personas`;document.getElementById('hierarchyTableBody').innerHTML=rows.map(row=>`<tr><td>${escapeHtml(row.id)}</td><td><div class="person-cell"><span class="mini-avatar">${initials(row.name)}</span><strong>${escapeHtml(row.name)}</strong></div></td><td>${escapeHtml(row.department)}</td><td>${escapeHtml(row.position)}</td><td><span class="status-dot">${escapeHtml(row.status)}</span></td><td><span class="role-pill ${row.role==='SUPER ADMIN'||row.role==='DIRECCIÓN'?'direction':''}">${escapeHtml(row.role)}</span></td><td>${escapeHtml(row.email)}</td><td>${row.protected?'<span class="superadmin-pill">PROTEGIDO</span>':canManage?`<button class="edit-role" data-edit-access="${escapeHtml(row.id)}">CONFIGURAR</button>`:''}</td></tr>`).join('')||'<tr><td colspan="8">Sin resultados.</td></tr>';Hyperion.smartHover('#hierarchyTable')}
-  const permissionLabels={overview:'Dashboard general',alerts:'Centro de alertas',projects:'Proyectos',crm:'CRM',billing:'Facturación',training:'Capacitación',contingency:'Contingencia',safety:'Seguridad y normas',hr:'Recursos humanos',commercial:'Comercial y marketing',evaluations:'Evaluaciones N4'};
+  const permissionLabels={overview:'Dashboard general',alerts:'Centro de alertas',projects:'Proyectos',historical:'Histórico',crm:'CRM',billing:'Facturación',training:'Capacitación',contingency:'Contingencia',safety:'Seguridad y normas',hr:'Recursos humanos',commercial:'Comercial y marketing',evaluations:'Evaluaciones N4'};
   const defaultViews={TRABAJADOR:['overview','alerts','training','contingency','safety'],'LÍDER':['overview','alerts','training','contingency','safety','crm','billing','commercial'],COORDINADOR:['overview','alerts','training','contingency','safety','crm','billing','commercial','hr'],'DIRECCIÓN':['overview','alerts','training','contingency','safety','crm','billing','commercial','hr','evaluations']};
   function applyTheme(theme){const selected=theme||localStorage.getItem('sara-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=selected;localStorage.setItem('sara-theme',selected);const button=document.getElementById('themeButton');if(button)button.innerHTML=selected==='dark'?'<span>MODO</span> CLARO':'<span>MODO</span> OSCURO'}
   function toggleTheme(){applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')}
@@ -327,7 +343,7 @@ const SARA_APP=(()=>{
   function showAuth(message,configured=true){document.getElementById('loadingScreen').classList.add('hidden');document.getElementById('authScreen').hidden=false;document.getElementById('authMessage').textContent=message;document.getElementById('signInButton').hidden=!configured}
   async function startAuth(){const button=document.getElementById('signInButton');button.disabled=true;button.textContent='CONECTANDO';try{await SaraBridge.signIn();document.getElementById('authScreen').hidden=true;await load()}catch(error){showAuth(error.message,true)}finally{button.disabled=false;button.textContent='CONTINUAR CON GOOGLE'}}
   function renderModule(view){const meta=moduleMeta[view];document.getElementById('moduleKicker').textContent=meta.kicker;document.getElementById('moduleTitle').textContent=meta.title;document.getElementById('moduleDescription').textContent=meta.description;document.getElementById('moduleSymbol').textContent=meta.symbol;document.getElementById('moduleMessage').textContent=`${meta.title} está preparado`;document.getElementById('moduleKpis').innerHTML=meta.stats.map(([label,value])=>`<div class="module-stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}
-  function setView(view){state.currentView=view;document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));let panel=document.querySelector(`[data-view-panel="${view}"]`);if(!panel){panel=document.querySelector('[data-view-panel="module"]');renderModule(view)}panel.classList.add('active');const titles={overview:'Dashboard general',alerts:'Centro de alertas',hierarchies:'Jerarquías'};document.getElementById('pageTitle').textContent=titles[view]||(moduleMeta[view]&&moduleMeta[view].title)||'SARA';document.getElementById('sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'})}
+  function setView(view){state.currentView=view;document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));let panel=document.querySelector(`[data-view-panel="${view}"]`);if(!panel){panel=document.querySelector('[data-view-panel="module"]');renderModule(view)}panel.classList.add('active');const titles={overview:'Dashboard general',alerts:'Centro de alertas',historical:'Histórico',hierarchies:'Jerarquías'};document.getElementById('pageTitle').textContent=titles[view]||(moduleMeta[view]&&moduleMeta[view].title)||'SARA';document.getElementById('sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'})}
   function hydrate(data){state.data=data;const user=data.user;const allowed=new Set(data.permissions.views||[]);document.querySelectorAll('.nav-item[data-view]').forEach(button=>{button.hidden=!allowed.has(button.dataset.view)});document.getElementById('userName').textContent=user.name||user.email;document.getElementById('userRole').textContent=user.level===5?'SUPER ADMIN':`N${user.level} · ${user.role}`;document.getElementById('userInitials').textContent=initials(user.name||user.email);document.getElementById('lastUpdate').textContent=new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit'}).format(new Date(data.meta.generatedAt));document.getElementById('currentPeriod').textContent=new Intl.DateTimeFormat('es-MX',{month:'long',year:'numeric'}).format(new Date());renderKpis(data.dashboard.metrics);renderChart(data.dashboard.trend);renderAlerts(data.alerts);renderFunnel(data.dashboard.crm);renderProjects(data.dashboard.projects);if(allowed.has('hierarchies'))renderHierarchies();Hyperion.init({pulse:true});document.getElementById('loadingScreen').classList.add('hidden');document.getElementById('authScreen').hidden=true;if(data.meta.mode==='demo')toast('Vista de demostración con datos ficticios.')}
 
   async function load(){try{document.getElementById('loadingScreen').classList.remove('hidden');const data=await callServer('apiGetBootstrap');hydrate(data===demoData?demoData:data)}catch(error){document.getElementById('loadingScreen').classList.add('hidden');if(window.SaraBridge&&!SaraBridge.isDemo()){showAuth(error.message,true);return}toast(error.message,'error');document.getElementById('content').innerHTML=`<article class="panel module-empty"><div class="module-symbol">ERROR</div><h3>No se pudo abrir SARA</h3><p>${escapeHtml(error.message)} Contacta al superadministrador.</p></article>`}}
@@ -488,6 +504,35 @@ window.SaraHrDirection=(()=>{
   function reset(){document.getElementById('hrDepartment').value='TODOS';document.getElementById('hrMonth').value='TODOS';document.getElementById('hrYear').value='TODOS';render()}
   function open(){document.getElementById('pageTitle').textContent='Recursos humanos';request(false)}
   function bind(){['hrDepartment','hrMonth','hrYear'].forEach(id=>document.getElementById(id).addEventListener('change',render));document.getElementById('hrReset').addEventListener('click',reset);document.getElementById('hrRefresh').addEventListener('click',()=>{data=null;try{sessionStorage.removeItem(storageKey)}catch(error){}request(true)});document.getElementById('navList').addEventListener('click',event=>{const button=event.target.closest('[data-view="hr"]');if(button)open()})}
+  document.addEventListener('DOMContentLoaded',bind);
+  return{open,request};
+})();
+</script>
+
+    <style>
+  .historical-heading{margin-bottom:16px}.historical-toolbar{display:grid;grid-template-columns:minmax(180px,1fr) minmax(260px,2fr) auto auto;gap:10px;align-items:end;margin-bottom:16px;padding:15px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+  .historical-toolbar label{display:grid;gap:6px}.historical-toolbar label span{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.historical-toolbar select{min-height:40px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--text)}
+  .historical-status{min-height:150px;display:grid;place-items:center;padding:25px;border:1px dashed var(--line);border-radius:var(--radius);background:var(--surface);color:var(--muted);text-align:center}.historical-status[hidden]{display:none!important}.historical-content{display:grid;gap:15px}
+  .historical-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.historical-kpi{padding:18px;border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:var(--radius);background:var(--surface)}.historical-kpi.info{border-top-color:var(--cyan)}.historical-kpi span{display:block;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}.historical-kpi strong{display:block;margin:9px 0 4px;font-size:27px;line-height:1.15;overflow-wrap:anywhere}.historical-kpi small{color:var(--muted);font-size:11px}
+  .historical-panel{padding:18px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}.historical-panel-heading{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:14px}.historical-panel-heading h3{margin:0;font-size:16px}.historical-panel-heading span{color:var(--muted);font-size:11px}.historical-table-wrap{overflow:auto}.historical-table{width:100%;border-collapse:collapse}.historical-table th,.historical-table td{padding:12px 10px;border-bottom:1px solid var(--line-soft);text-align:left;font-size:12px}.historical-table th{color:var(--muted);font-size:10px;letter-spacing:.08em;text-transform:uppercase}.historical-table .rank{width:60px;color:var(--accent);font-weight:900}.historical-table .amount{text-align:right;font-variant-numeric:tabular-nums;font-weight:800;color:var(--green)}
+  @media(max-width:850px){.historical-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.historical-toolbar,.historical-kpis{grid-template-columns:1fr}}
+</style>
+<script>
+window.SaraHistorical=(()=>{
+  let data=null;
+  const storageKey='sara-historical-v1';
+  const ttl=10*60*1000;
+  const money=new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2});
+  const escape=value=>String(value==null?'':value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  function sample(){return{filters:{years:['2026','2025'],departments:['COMERCIAL','SEGURISTAS']},summaries:{'TODOS|TODOS':{total:24800000,topCustomers:[{customer:'CLIENTE DE DEMOSTRACIÓN',total:6200000}]},'2026|TODOS':{total:12400000,topCustomers:[{customer:'CLIENTE DE DEMOSTRACIÓN',total:3100000}]}},generatedAt:'Demostración'}}
+  function readStored(){try{const value=JSON.parse(sessionStorage.getItem(storageKey)||'null');return value&&Date.now()-value.savedAt<ttl?value.data:null}catch(error){return null}}
+  function store(value){try{sessionStorage.setItem(storageKey,JSON.stringify({savedAt:Date.now(),data:value}))}catch(error){}}
+  async function request(force=false){const status=document.getElementById('historicalStatus');const content=document.getElementById('historicalContent');status.hidden=false;content.hidden=true;status.textContent='Consolidando facturación histórica.';try{data=!force&&(data||readStored());if(!data){if(window.SaraBridge&&SaraBridge.isDemo())data=sample();else{const response=await SaraBridge.run('apiGetHistoricalDashboard');data=response.data}store(data)}fillFilters();render();status.hidden=true;content.hidden=false;document.getElementById('historicalUpdatedAt').textContent=data.generatedAt||'ACTUALIZADO'}catch(error){status.textContent='No fue posible cargar Histórico: '+(error&&error.message?error.message:error)}}
+  function fillFilters(){const year=document.getElementById('historicalYear');const department=document.getElementById('historicalDepartment');const selectedYear=year.value;const selectedDepartment=department.value;year.innerHTML='<option value="TODOS">Todos los años</option>'+(data.filters.years||[]).map(value=>`<option value="${escape(value)}">Año ${escape(value)}</option>`).join('');department.innerHTML='<option value="TODOS">Todos los departamentos</option>'+(data.filters.departments||[]).map(value=>`<option value="${escape(value)}">${escape(value)}</option>`).join('');if([...year.options].some(option=>option.value===selectedYear))year.value=selectedYear;if([...department.options].some(option=>option.value===selectedDepartment))department.value=selectedDepartment}
+  function render(){const year=document.getElementById('historicalYear').value;const department=document.getElementById('historicalDepartment').value;const summary=data.summaries[year+'|'+department]||{total:0,topCustomers:[]};const rows=summary.topCustomers||[];const yearLabel=year==='TODOS'?'Histórico consolidado':'Ejercicio '+year;const departmentLabel=department==='TODOS'?'Todas las áreas':department;document.getElementById('historicalContent').innerHTML=`<div class="historical-kpis"><article class="historical-kpi info"><span>Monto consolidado</span><strong>${money.format(summary.total||0)}</strong><small>${escape(yearLabel)} · ${escape(departmentLabel)}</small></article><article class="historical-kpi"><span>Cliente líder</span><strong>${escape(rows.length?rows[0].customer:'Sin registros')}</strong><small>${rows.length?money.format(rows[0].total||0):'Sin facturación para la selección'}</small></article></div><article class="historical-panel"><div class="historical-panel-heading"><h3>Clientes principales</h3><span>${escape(departmentLabel)} · ${escape(yearLabel)}</span></div><div class="historical-table-wrap"><table class="historical-table"><thead><tr><th>Posición</th><th>Razón social</th><th class="amount">Total facturado</th></tr></thead><tbody>${rows.map((item,index)=>`<tr><td class="rank">${index+1}</td><td>${escape(item.customer)}</td><td class="amount">${money.format(item.total||0)}</td></tr>`).join('')||'<tr><td colspan="3">No hay movimientos comerciales con los criterios seleccionados.</td></tr>'}</tbody></table></div></article>`;Hyperion.smartHover('.historical-table')}
+  function reset(){document.getElementById('historicalYear').value='TODOS';document.getElementById('historicalDepartment').value='TODOS';render()}
+  function open(){document.getElementById('pageTitle').textContent='Histórico';request(false)}
+  function bind(){document.getElementById('historicalYear').addEventListener('change',render);document.getElementById('historicalDepartment').addEventListener('change',render);document.getElementById('historicalReset').addEventListener('click',reset);document.getElementById('historicalRefresh').addEventListener('click',()=>{data=null;try{sessionStorage.removeItem(storageKey)}catch(error){}request(true)});document.getElementById('navList').addEventListener('click',event=>{const button=event.target.closest('[data-view="historical"]');if(button)open()})}
   document.addEventListener('DOMContentLoaded',bind);
   return{open,request};
 })();
