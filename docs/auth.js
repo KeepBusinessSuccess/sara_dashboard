@@ -53,7 +53,7 @@ window.SaraBridge = (() => {
   async function run(functionName, ...parameters) {
     if (!accessToken || Date.now() >= expiresAt - 360000) throw new Error('La sesión expiró. Vuelve a iniciar sesión.');
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 75000);
+    const timeout = setTimeout(() => controller.abort(), 180000);
     let response;
     try {
       response = await fetch(`https://script.googleapis.com/v1/scripts/${encodeURIComponent(config().gatewayDeploymentId)}:run`, {
